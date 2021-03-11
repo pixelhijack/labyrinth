@@ -57,7 +57,16 @@ function create (){
     });
     const tileset = tilemap.addTilesetImage('walls', null, 64, 64);
     const layer = tilemap.createLayer(0, tileset, 0, 0);
-    player = this.physics.add.sprite(64 * 2 + 32, 64 * 1 + 32, 'hero').setScale(0.3)
+    player = this.physics.add.sprite(64 * 2 + 32, 64 * 1 + 32, 'hero').setScale(0.3);
+    this.physics.add.collider(player, layer);
+    
+    // 7 = road tile
+    tilemap.setCollisionBetween(1, 6);
+    tilemap.setCollisionBetween(8, 9);
+
+    //this.cameras.main.setBounds(0, 0, tilemap.widthInPixels, tilemap.heightInPixels);
+    //this.cameras.main.startFollow(player);
+
     cursors = this.input.keyboard.createCursorKeys();
     /*
     const animations = [
@@ -91,27 +100,47 @@ function create (){
 }
 
 function update(){
-    player.setVelocity(0);
+    player.body.setVelocity(0);
 
+    // Horizontal movement
     if (cursors.left.isDown)
     {
-        player.setVelocityX(-300);
-        player.play({ key: 'left', repeat: 1 });
+        player.body.setVelocityX(-100);
     }
     else if (cursors.right.isDown)
     {
-        player.setVelocityX(300);
-        player.play({ key: 'right', repeat: -1 });
+        player.body.setVelocityX(100);
     }
 
+    // Vertical movement
     if (cursors.up.isDown)
     {
-        player.setVelocityY(-300);
-        player.play({ key: 'up', repeat: -1 });
+        player.body.setVelocityY(-100);
     }
     else if (cursors.down.isDown)
     {
-        player.setVelocityY(300);
-        player.play({ key: 'down', repeat: -1 });
+        player.body.setVelocityY(100);
+    }
+
+    // Update the animation last and give left/right animations precedence over up/down animations
+    if (cursors.left.isDown)
+    {
+        player.anims.play('left', true);
+    }
+    else if (cursors.right.isDown)
+    {
+        player.anims.play('right', true);
+    }
+    else if (cursors.up.isDown)
+    {
+        player.anims.play('up', true);
+    }
+    else if (cursors.down.isDown)
+    {
+        player.anims.play('down', true);
+    }
+    else
+    {
+        player.anims.stop();
     }
 }
