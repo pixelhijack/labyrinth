@@ -1,4 +1,7 @@
-//import Phaser from 'phaser';
+import { MazeBuilder } from './generators.js';
+
+let maze = new MazeBuilder(100, 100);
+let laby = maze.maze.map(row => row.map(cell => cell.includes("wall") ? 1 : 0))
 
 const config = {
     type: Phaser.AUTO,
@@ -30,16 +33,21 @@ const walls = [
     [9,9,9,9,9,9,9,9,9,9]
 ];
 
-const level = walls.map(raw => raw.map(cell => cell === 0 ? 7 : 5))
+const level = laby.map(raw => raw.map(cell => cell === 0 ? 7 : 5))
 
 const game = new Phaser.Game(config);
 let cursors = undefined;
 let player = undefined;
+let player2 = undefined;
 
 function preload (){
     console.log('[PHASER][Preload]');
     this.load.image('walls', 'tileset-384x256-64x64.jpg');
     this.load.spritesheet('hero', 'hero.png', { 
+        frameWidth: 644 / 4, 
+        frameHeight: 840 / 4 
+    });
+    this.load.spritesheet('hero2', 'hero2.png', { 
         frameWidth: 644 / 4, 
         frameHeight: 840 / 4 
     });
@@ -57,15 +65,16 @@ function create (){
     });
     const tileset = tilemap.addTilesetImage('walls', null, 64, 64);
     const layer = tilemap.createLayer(0, tileset, 0, 0);
-    player = this.physics.add.sprite(64 * 2 + 32, 64 * 1 + 32, 'hero').setScale(0.3);
+    player = this.physics.add.sprite(64 * 2 + 32, 64 * 1 + 32, 'hero').setScale(0.25);
+    player2 = this.physics.add.sprite(64 * 5 + 32, 64 * 5 + 32, 'hero2').setScale(0.25);
     this.physics.add.collider(player, layer);
     
     // 7 = road tile
     tilemap.setCollisionBetween(1, 6);
     tilemap.setCollisionBetween(8, 9);
 
-    //this.cameras.main.setBounds(0, 0, tilemap.widthInPixels, tilemap.heightInPixels);
-    //this.cameras.main.startFollow(player);
+    this.cameras.main.setBounds(0, 0, tilemap.widthInPixels, tilemap.heightInPixels);
+    this.cameras.main.startFollow(player);
 
     cursors = this.input.keyboard.createCursorKeys();
     /*
@@ -142,5 +151,6 @@ function update(){
     else
     {
         player.anims.stop();
+        player2.anims.stop();
     }
 }
