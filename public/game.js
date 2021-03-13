@@ -3,6 +3,8 @@ import { MazeBuilder } from './generators.js';
 let maze = new MazeBuilder(100, 100);
 let laby = maze.maze.map(row => row.map(cell => cell.includes("wall") ? 1 : 0))
 
+const roomId = location.pathname.length && location.pathname.split('/') && location.pathname.split('/')[1]
+
 const config = {
     type: Phaser.AUTO,
     width: 64 * 10,
@@ -19,6 +21,16 @@ const config = {
         update: update
     }
 };
+
+let state = {}
+
+const updateState = (event, newState) => {
+    console.log(event, newState);
+    state = {
+        ...state,
+        ...newState
+    }
+}
 
 const walls = [
     [9,9,9,9,9,9,9,9,9,9],
@@ -55,6 +67,15 @@ function preload (){
 
 function create (){
     console.log('[PHASER][Create]');
+
+    // SOCKET.io
+    this.socket = io();
+    //this.socket.emit('room', roomId)
+    this.socket.on(
+        'new player', 
+        ({ room, players }) => updateState('new player', { room, players })
+    )
+
     //const walls = this.add.tileSprite(0, 0, 800, 600, 'walls');
     const tilemap = this.make.tilemap({ 
         data: level,
