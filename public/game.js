@@ -1,9 +1,7 @@
 import { MazeBuilder } from './generators.js';
 
 let maze = new MazeBuilder(100, 100);
-let laby = maze.maze.map(row => row.map(cell => cell.includes("wall") ? 1 : 0))
-
-const roomId = location.pathname.length && location.pathname.split('/') && location.pathname.split('/')[1]
+let laby = maze.maze.map(row => row.map(cell => cell.includes("wall") ? 1 : 0));
 
 const config = {
     type: Phaser.AUTO,
@@ -70,7 +68,9 @@ function create (){
 
     // SOCKET.io
     this.socket = io();
-    //this.socket.emit('room', roomId)
+    this.socket.emit('user joined room', {
+        roomId: location.pathname.length && location.pathname.split('/') && location.pathname.split('/')[1]
+    })
     this.socket.on(
         'new player', 
         ({ room, players }) => updateState('new player', { room, players })

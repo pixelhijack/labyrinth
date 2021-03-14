@@ -4,7 +4,6 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>MAZE</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.js" integrity="sha512-74AKPNm8Tfd5E9c4otg7XNkIVfIe5ynON7wehpX/9Tv5VYcZvXZBAlcgOAjLHg6HeWyLujisAnle6+iKnyWd9Q==" crossorigin="anonymous"></script>
     <script>
         function createRoom(length) {
             let result = '';
@@ -12,11 +11,7 @@
             for ( var i = 0; i < length; i++ ) {
                 result += characters.charAt(Math.floor(Math.random() * characters.length));
             }
-            const socket = io();
-            socket.emit('room', result)
-            setTimeout(() => { 
-                location.href = result;
-            }, 1000)
+            location.href = result;
         }
     </script>
   </head>

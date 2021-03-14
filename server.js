@@ -12,18 +12,20 @@ let states = {}
 io.on('connection', function (socket) {
     console.log('a user connected ', socket.id);
     
-    socket.on('room', function (room) {
-        console.log('to room ', room);
-        socket.join(room);
-        states[room] = {
-            room: room,
-            players: states[room] ? states[room].players.concat(socket.id) : [socket.id] 
-        }
-        io.to(room).emit('new player', states[room])
-    });
-    
-    socket.on('disconnect', function (socket) {
-        console.log('user disconnected ', socket.id);
+    socket.on('user joined room', ({ roomId }) => {
+        socket.join(roomId);
+        states[roomId].players = states[roomId].players.concat(socket.id);
+        console.log('user joined room', states[roomId]);
+        io.to(roomId).emit('players welcome new player', states[roomId])
+
+        socket.on('disconnect', function () {
+          if(states[roomId].players.length > 1) {
+            states[roomId].players = states[roomId].players.filter(p => p !== socket.id);
+          } else {
+            delete states[roomId];
+          }
+          console.log(`user ${socket.id} disconnected `, states);
+        });
     });
 });
 
@@ -33,6 +35,11 @@ app.get('/', function (req, res) {
 
 app.get('/:id', function (req, res) {
     //res.sendFile(__dirname + './game.html');
+    states[req.params.id] = states[req.params.id] || {
+      room: req.params.id,
+      players: []
+    }
+    console.log('/:id', states)
     res.sendFile(path.join(__dirname, 'public/game.html'));
   });
 
