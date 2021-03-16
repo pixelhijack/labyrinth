@@ -26,6 +26,19 @@ io.on('connection', function (socket) {
           }
           console.log(`user ${socket.id} disconnected `, states);
         });
+
+        [
+          'player move: LEFT',
+          'player move: RIGHT',
+          'player move: UP',
+          'player move: DOWN'
+        ].forEach(gameEvent => {
+          // read user input...
+          socket.on(gameEvent, (args) => {
+            // ...update game state
+            io.to(roomId).emit(gameEvent, args)
+          });
+        });
     });
 });
 

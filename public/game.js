@@ -20,6 +20,10 @@ const config = {
     }
 };
 
+const settings = {
+    velocity: 100
+}
+
 let state = {}
 
 const updateState = (event, newState) => {
@@ -75,6 +79,17 @@ function create (){
         'new player', 
         ({ room, players }) => updateState('new player', { room, players })
     )
+
+    const gameEvents = {
+        'player move: LEFT': (x) => player.body.setVelocityX(-x),
+        'player move: RIGHT': (x) => player.body.setVelocityX(x),
+        'player move: UP': (x) => player.body.setVelocityY(-x),
+        'player move: DOWN': (x) => player.body.setVelocityY(x)
+    };
+    Object.entries(gameEvents).forEach(([event, callback]) => {
+        this.socket.on(event, callback);
+    })
+    // = this.socket.on('player move: LEFT', (x) => player.body.setVelocityX(-x));
 
     //const walls = this.add.tileSprite(0, 0, 800, 600, 'walls');
     const tilemap = this.make.tilemap({ 
@@ -135,21 +150,25 @@ function update(){
     // Horizontal movement
     if (cursors.left.isDown)
     {
-        player.body.setVelocityX(-100);
+        //player.body.setVelocityX(-100);
+        this.socket.emit('player move: LEFT', settings.velocity)
     }
     else if (cursors.right.isDown)
     {
-        player.body.setVelocityX(100);
+        //player.body.setVelocityX(100);
+        this.socket.emit('player move: RIGHT', settings.velocity)
     }
 
     // Vertical movement
     if (cursors.up.isDown)
     {
-        player.body.setVelocityY(-100);
+        //player.body.setVelocityY(-100);
+        this.socket.emit('player move: UP', settings.velocity)
     }
     else if (cursors.down.isDown)
     {
-        player.body.setVelocityY(100);
+        //player.body.setVelocityY(100);
+        this.socket.emit('player move: DOWN', settings.velocity)
     }
 
     // Update the animation last and give left/right animations precedence over up/down animations
