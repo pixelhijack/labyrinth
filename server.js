@@ -16,7 +16,11 @@ io.on('connection', function (socket) {
         socket.join(roomId);
         states[roomId].players = states[roomId].players.concat(socket.id);
         console.log('user joined room', states[roomId]);
-        io.to(roomId).emit('players welcome new player', states[roomId])
+        socket.emit('player name is', { id: socket.id });
+        io.to(roomId).emit('new player', {
+          room: roomId, 
+          playersOfRoom: states[roomId].players
+        });
 
         socket.on('disconnect', function () {
           if(states[roomId].players.length > 1) {

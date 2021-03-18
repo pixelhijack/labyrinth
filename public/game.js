@@ -24,16 +24,6 @@ const settings = {
     velocity: 100
 }
 
-let state = {}
-
-const updateState = (event, newState) => {
-    console.log(event, newState);
-    state = {
-        ...state,
-        ...newState
-    }
-}
-
 const walls = [
     [9,9,9,9,9,9,9,9,9,9],
     [9,0,0,0,0,0,0,0,0,9],
@@ -53,6 +43,8 @@ const game = new Phaser.Game(config);
 let cursors = undefined;
 let player = undefined;
 let player2 = undefined;
+let players = {};
+let clientId = undefined;
 let light = undefined;
 
 function preload (){
@@ -78,14 +70,30 @@ function create (){
     })
     this.socket.on(
         'new player', 
-        ({ room, players }) => updateState('new player', { room, players })
-    )
+        ({ room, playersOfRoom }) => {
+            console.log(`new player at room ${room}`, playersOfRoom);
+            playersOfRoom.forEach(id => {
+                if(!players[id]){
+                    players[id] = {};
+                }
+            })
+        });
+    this.socket.on(
+        'player name is', 
+        ({ id }) => {
+            console.log('player name is', id);
+            clientId = id;
+            players[clientId] = this.physics.add.sprite(64 * 2 + 32, 64 * 1 + 32, 'hero').setScale(0.25);
+            const player = players[clientId];
+            this.physics.add.collider(player, layer);
+            this.cameras.main.startFollow(player);
+        });
 
     const gameEvents = {
-        'player move: LEFT': ({x}) => player.body.setVelocityX(-x),
-        'player move: RIGHT': ({x}) => player.body.setVelocityX(x),
-        'player move: UP': ({x}) => player.body.setVelocityY(-x),
-        'player move: DOWN': ({x}) => player.body.setVelocityY(x)
+        'player move: LEFT': ({x}) => players[clientId].body.setVelocityX(-x),
+        'player move: RIGHT': ({x}) => players[clientId].body.setVelocityX(x),
+        'player move: UP': ({x}) => players[clientId].body.setVelocityY(-x),
+        'player move: DOWN': ({x}) => players[clientId].body.setVelocityY(x)
     };
     Object.entries(gameEvents).forEach(([event, callback]) => {
         this.socket.on(event, callback);
@@ -102,16 +110,13 @@ function create (){
     });
     const tileset = tilemap.addTilesetImage('walls', null, 64, 64);
     const layer = tilemap.createLayer(0, tileset, 0, 0);
-    player = this.physics.add.sprite(64 * 2 + 32, 64 * 1 + 32, 'hero').setScale(0.25);
     player2 = this.physics.add.sprite(64 * 5 + 32, 64 * 5 + 32, 'hero2').setScale(0.25);
-    this.physics.add.collider(player, layer);
     
     // 7 = road tile
     tilemap.setCollisionBetween(1, 6);
     tilemap.setCollisionBetween(8, 9);
 
     this.cameras.main.setBounds(0, 0, tilemap.widthInPixels, tilemap.heightInPixels);
-    this.cameras.main.startFollow(player);
 
     cursors = this.input.keyboard.createCursorKeys();
 
@@ -153,9 +158,14 @@ function create (){
 }
 
 function update(){
+    const player = players[clientId];
+    if(!player){
+        return
+    }
+
     player.body.setVelocity(0);
-    light.x = player.body.x;
-    light.y = player.body.y;
+    light.x = players[clientId].body.x;
+    light.y = players[clientId].body.y;
 
     // Horizontal movement
     if (cursors.left.isDown)
@@ -200,7 +210,7 @@ function update(){
     }
     else
     {
-        player.anims.stop();
+        players[clientId].anims.stop();
         player2.anims.stop();
     }
 }
