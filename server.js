@@ -40,7 +40,7 @@ io.on('connection', function (socket) {
           // read user input...
           socket.on(gameEvent, (args) => {
             // ...update game state
-            io.to(roomId).emit(gameEvent, {player: socket.id, ...args})
+            io.to(roomId).emit(gameEvent, {id: socket.id, ...args})
           });
         });
     });
