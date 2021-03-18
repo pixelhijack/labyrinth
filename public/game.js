@@ -53,6 +53,7 @@ const game = new Phaser.Game(config);
 let cursors = undefined;
 let player = undefined;
 let player2 = undefined;
+let light = undefined;
 
 function preload (){
     console.log('[PHASER][Preload]');
@@ -81,10 +82,10 @@ function create (){
     )
 
     const gameEvents = {
-        'player move: LEFT': (x) => player.body.setVelocityX(-x),
-        'player move: RIGHT': (x) => player.body.setVelocityX(x),
-        'player move: UP': (x) => player.body.setVelocityY(-x),
-        'player move: DOWN': (x) => player.body.setVelocityY(x)
+        'player move: LEFT': ({x}) => player.body.setVelocityX(-x),
+        'player move: RIGHT': ({x}) => player.body.setVelocityX(x),
+        'player move: UP': ({x}) => player.body.setVelocityY(-x),
+        'player move: DOWN': ({x}) => player.body.setVelocityY(x)
     };
     Object.entries(gameEvents).forEach(([event, callback]) => {
         this.socket.on(event, callback);
@@ -113,6 +114,13 @@ function create (){
     this.cameras.main.startFollow(player);
 
     cursors = this.input.keyboard.createCursorKeys();
+
+    layer.setPipeline('Light2D');
+    this.lights.enable();
+    this.lights.setAmbientColor(0x000000);
+
+    light = this.lights.addLight(64 * 2 + 32, 64 * 1 + 32, 1000);
+
     /*
     const animations = [
         { key: 'walk', frames: [0, 1, 2, 3], frameRate: 10, loop: true }
@@ -146,29 +154,31 @@ function create (){
 
 function update(){
     player.body.setVelocity(0);
+    light.x = player.body.x;
+    light.y = player.body.y;
 
     // Horizontal movement
     if (cursors.left.isDown)
     {
         //player.body.setVelocityX(-100);
-        this.socket.emit('player move: LEFT', settings.velocity)
+        this.socket.emit('player move: LEFT', { x: settings.velocity })
     }
     else if (cursors.right.isDown)
     {
         //player.body.setVelocityX(100);
-        this.socket.emit('player move: RIGHT', settings.velocity)
+        this.socket.emit('player move: RIGHT', { x: settings.velocity })
     }
 
     // Vertical movement
     if (cursors.up.isDown)
     {
         //player.body.setVelocityY(-100);
-        this.socket.emit('player move: UP', settings.velocity)
+        this.socket.emit('player move: UP', { x: settings.velocity })
     }
     else if (cursors.down.isDown)
     {
         //player.body.setVelocityY(100);
-        this.socket.emit('player move: DOWN', settings.velocity)
+        this.socket.emit('player move: DOWN', { x: settings.velocity })
     }
 
     // Update the animation last and give left/right animations precedence over up/down animations
